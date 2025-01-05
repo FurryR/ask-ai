@@ -63,13 +63,7 @@ export function apply(ctx: Context, config: Config) {
     const html = await fetch(
       `${config.searchURL}${encodeURIComponent(
         chat.choices[0].message.content
-      )}`,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
-        },
-      }
+      )}`
     ).then((res) => res.text());
     const parsed = parse(html);
     const v = parsed.querySelectorAll(".result");
