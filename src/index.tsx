@@ -4,7 +4,7 @@ import OpenAI from "openai";
 
 import { parse } from "node-html-parser";
 
-import "koishi-plugin-markdown-to-image-service";
+import {} from  "koishi-plugin-markdown-to-image-service";
 
 export const name = "ask-ai";
 
@@ -137,9 +137,9 @@ ${output}
 </div>
 `);
     await session.send(
-      <quote id={session.messageId}>
-        {h.image(markdownImage, "image/png")}
-      </quote>
+      <>
+        <quote id={session.messageId} /> {h.image(markdownImage, "image/png")}
+      </>
     );
   });
 }
