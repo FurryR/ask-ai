@@ -137,9 +137,7 @@ ${output}
 </div>
 `);
     await session.send(
-      <>
-        <quote id={session.messageId} /> {h.image(markdownImage, "image/png")}
-      </>
+      <><quote id={session.messageId} />{h.image(markdownImage, "image/png")}</>
     );
   });
 }
