@@ -80,20 +80,33 @@ export function apply(ctx: Context, config: Config) {
       const link = quote && index % 1 ? quote.links[index - 1] : null;
       if (!link) {
         if (isNaN(index) || index % 1)
-          return <>
+          return (
+            <>
               <quote id={message.id} />
               非法输入。
             </>
+          );
+        if (quote.links.length === 0)
+          return (
+            <>
+              <quote id={message.id} />
+              没有针对此搜索结果的引用链接。
+            </>
+          );
         if (index < 1 || index > quote.links.length)
-          return <>
+          return (
+            <>
               <quote id={message.id} />
               下标越界。请输入 [1, {quote.links.length}] 范围内的整数。
             </>
+          );
       }
-      return <>
+      return (
+        <>
           <quote id={message.id} />
           {link}
         </>
+      );
     } else return next();
   }, true);
   ctx
@@ -166,7 +179,7 @@ export function apply(ctx: Context, config: Config) {
         })
         .join("\n---\n");
       messages[0].content = `${config.prompt ?? "你是一个对话机器人。"}
-Now, please summarize all search results with the user input as the theme matching the language of the user input. If any word, phrase, sentence, opinion or specific name of the output is from the search result, please replace the word with a Markdown link to the original content IN PLACE (for example, \`[A](https://example.com/about_a) is [the first letter of the alphabet](https://example.com/source)\`. DO NOT list the links. DO NOT emit sentences like "You can obtain more information about ... at ..." or "Here is the information about ..." Avoid any opinion not from the search result. You don't need to introduce yourself or ask for user input.
+Now, please summarize all search results with the user input as the theme matching the language of the user input. If any word, phrase, sentence, opinion or specific name of the output is from the search result, please replace the word with a Markdown link to the original content IN PLACE (for example, \`[A](https://example.com/about_a) is [the first letter of the alphabet](https://example.com/source)\`. ALL SEARCH RESULTS MUST APPEAR IN THE OUTPUT. DO NOT list the links. DO NOT emit sentences like "You can obtain more information about ... at ..." or "Here is the information about ...". DO NOT emit any opinion not from the search result. You don't need to introduce yourself or ask for user input.
 
 ${nextPrompt}
 
