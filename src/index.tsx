@@ -63,7 +63,7 @@ export const Config: Schema<Config> = Schema.object({
 });
 
 export const inject = {
-  optional: ["markdownToImage"],
+  optional: ["markdownToImage", "cache"],
 };
 
 export function apply(ctx: Context, config: Config) {
