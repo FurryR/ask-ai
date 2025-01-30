@@ -86,11 +86,11 @@ export function apply(ctx: Context, config: Config) {
               非法输入。
             </>,
           );
-        if (index < 0 || index > quote.links.length)
+        if (index < 1 || index > quote.links.length)
           return session.send(
             <>
               <quote id={message.id} />
-              下标越界。请输入 [0, {quote.links.length}] 范围内的整数。
+              下标越界。请输入 [1, {quote.links.length}] 范围内的整数。
             </>,
           );
       }
