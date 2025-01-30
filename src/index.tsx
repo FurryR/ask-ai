@@ -77,7 +77,7 @@ export function apply(ctx: Context, config: Config) {
       const index = parseInt(message.content);
       const quote = await ctx.cache.get("ask-ai", message.quote.id ?? "");
       if (!quote) return next();
-      const link = quote && index % 1 ? quote.links[index - 1] : null;
+      const link = !(index % 1) ? quote.links[index - 1] : null;
       if (!link) {
         if (isNaN(index) || index % 1)
           return (
@@ -100,6 +100,12 @@ export function apply(ctx: Context, config: Config) {
               下标越界。请输入 [1, {quote.links.length}] 范围内的整数。
             </>
           );
+        return (
+          <>
+            <quote id={message.id} />
+            孩子你无敌了。发生了未知错误。
+          </>
+        );
       }
       return (
         <>
