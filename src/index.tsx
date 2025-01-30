@@ -80,26 +80,20 @@ export function apply(ctx: Context, config: Config) {
       const link = quote && index % 1 ? quote.links[index - 1] : null;
       if (!link) {
         if (isNaN(index) || index % 1)
-          return session.send(
-            <>
+          return <>
               <quote id={message.id} />
               非法输入。
-            </>,
-          );
+            </>
         if (index < 1 || index > quote.links.length)
-          return session.send(
-            <>
+          return <>
               <quote id={message.id} />
               下标越界。请输入 [1, {quote.links.length}] 范围内的整数。
-            </>,
-          );
+            </>
       }
-      return session.send(
-        <>
+      return <>
           <quote id={message.id} />
           {link}
-        </>,
-      );
+        </>
     } else return next();
   }, true);
   ctx
