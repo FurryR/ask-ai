@@ -49,16 +49,16 @@ export const Config: Schema<Config> = Schema.object({
     .default(false),
   verboseOutput: Schema.boolean()
     .description(
-      "是否启用更详细的输出（如显示思考过程）。此功能可能导致风控，不建议在调试以外的场合打开。"
+      "是否启用更详细的输出（如显示思考过程）。此功能可能导致风控，不建议在调试以外的场合打开。",
     )
     .default(false),
   cacheEnabled: Schema.boolean()
     .description(
-      "是否启用缓存 (需要缓存实现支持)。这将允许用户通过回复搜索结果来获得引用链接。"
+      "是否启用缓存 (需要缓存实现支持)。这将允许用户通过回复搜索结果来获得引用链接。",
     )
     .default(true),
   maxAge: Schema.number().description(
-    "缓存最大存活时间。未指定时，使用缓存表的设置。"
+    "缓存最大存活时间。未指定时，使用缓存表的设置。",
   ),
 });
 
@@ -71,23 +71,37 @@ export function apply(ctx: Context, config: Config) {
     baseURL: config.baseURL,
     apiKey: config.apiKey,
   });
-  ctx.on("message", async (session) => {
+  ctx.middleware(async (session, next) => {
     const { message } = session.event;
-    if (message && message.quote) {
+    if (config.cacheEnabled && ctx.cache && message && message.quote) {
       const index = parseInt(message.content);
-      if (isNaN(index)) return;
       const quote = await ctx.cache.get("ask-ai", message.quote.id ?? "");
-      if (!quote) return;
-      const link = quote.links[index - 1];
-      if (!link) return;
-      await session.send(
+      if (!quote) return next();
+      const link = quote && index % 1 ? quote.links[index - 1] : null;
+      if (!link) {
+        if (isNaN(index) || index % 1)
+          return session.send(
+            <>
+              <quote id={message.id} />
+              非法输入。
+            </>,
+          );
+        if (index < 0 || index > quote.links.length)
+          return session.send(
+            <>
+              <quote id={message.id} />
+              下标越界。请输入 [0, {quote.links.length}] 范围内的整数。
+            </>,
+          );
+      }
+      return session.send(
         <>
           <quote id={message.id} />
           {link}
-        </>
+        </>,
       );
-    }
-  });
+    } else return next();
+  }, true);
   ctx
     .command("search <prompt:text>")
     .alias("搜索", "不懂就问")
@@ -111,13 +125,13 @@ export function apply(ctx: Context, config: Config) {
       if (config.verboseOutput) {
         await session.bot.deleteMessage(session.channelId, lastMessage[0]);
         lastMessage = await session.send(
-          `(正在搜索: ${chat.choices[0].message.content})`
+          `(正在搜索: ${chat.choices[0].message.content})`,
         );
       }
       const html = await fetch(
         `${config.searchURL}${encodeURIComponent(
-          chat.choices[0].message.content
-        )}`
+          chat.choices[0].message.content,
+        )}`,
       ).then((res) => res.text());
       const parsed = parse(html);
       const v = parsed.querySelectorAll(".result");
@@ -128,7 +142,7 @@ export function apply(ctx: Context, config: Config) {
           <>
             <quote id={session.messageId} />
             没有找到相关的搜索结果。
-          </>
+          </>,
         );
         return;
       }
@@ -139,7 +153,7 @@ export function apply(ctx: Context, config: Config) {
           let href = a.getAttribute("href");
           if (href.startsWith("//duckduckgo.com")) {
             href = new URLSearchParams(href.slice(href.indexOf("?"))).get(
-              "uddg"
+              "uddg",
             );
           }
           return {
@@ -149,7 +163,7 @@ export function apply(ctx: Context, config: Config) {
           };
         })
         .filter(
-          (v) => !v.url.startsWith("https://duckduckgo.com/y.js?ad_domain=")
+          (v) => !v.url.startsWith("https://duckduckgo.com/y.js?ad_domain="),
         );
 
       const nextPrompt = result
@@ -214,7 +228,7 @@ ${output
     /<u>(.*?)<\/u>\[\\\[(.*?)\\\]\]\(mailto:blank@example.org\)/g,
     (_, text, index) => {
       return ` ${text} [${index}] `;
-    }
+    },
   )
   .replace(/\\\[(.*?)\\\]: (.*?)/g, (_, index, link) => {
     return `[${index}]: ${link}`;
@@ -223,7 +237,7 @@ ${output
 ---
 
 Powered by 玻狸 × 熊谷凌 (思考用时: ${usageTime}ms)`}
-          </>
+          </>,
         );
         if (config.cacheEnabled && ctx.cache) {
           await ctx.cache.set(
@@ -232,7 +246,7 @@ Powered by 玻狸 × 熊谷凌 (思考用时: ${usageTime}ms)`}
             {
               links,
             },
-            config.maxAge
+            config.maxAge,
           );
         }
       } else {
@@ -257,7 +271,7 @@ ${output}
           <>
             <quote id={session.messageId} />
             {h.image(markdownImage, "image/png")}
-          </>
+          </>,
         );
         if (config.cacheEnabled && ctx.cache) {
           await ctx.cache.set(
@@ -266,7 +280,7 @@ ${output}
             {
               links,
             },
-            config.maxAge
+            config.maxAge,
           );
         }
       }

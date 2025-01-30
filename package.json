@@ -29,6 +29,7 @@
     }
   },
   "devDependencies": {
-    "koishi-plugin-markdown-to-image-service": "^1.2.5"
+    "koishi-plugin-markdown-to-image-service": "^1.2.5",
+    "prettier": "^3.4.2"
   }
 }
